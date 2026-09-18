@@ -186,8 +186,10 @@ final class Updater
             'name' => $plugin['Name'],
             'slug' => self::SLUG,
             'version' => $release['version'],
-            'author' => esc_html($plugin['Author']),
-            'homepage' => 'https://github.com/' . self::REPOSITORY,
+            'author' => $plugin['AuthorURI'] !== ''
+                ? '<a href="' . esc_url($plugin['AuthorURI']) . '">' . esc_html($plugin['Author']) . '</a>'
+                : esc_html($plugin['Author']),
+            'homepage' => $plugin['PluginURI'] !== '' ? $plugin['PluginURI'] : 'https://github.com/' . self::REPOSITORY,
             'requires' => $plugin['RequiresWP'],
             'requires_php' => $plugin['RequiresPHP'],
             'last_updated' => $release['published'],

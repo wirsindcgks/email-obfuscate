@@ -3,3 +3,4 @@
 /.github export-ignore
 /.vscode export-ignore
 /tests export-ignore
+/bin export-ignore

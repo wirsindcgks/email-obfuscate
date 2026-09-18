@@ -165,5 +165,10 @@ check('Scanner: geschuetzte Bereiche offen', scanned($page) === ['a@b.de open sc
 $page = '<p>Mail&#58;&nbsp;&#105;&#64;&#98;&#46;&#100;&#101;&nbsp;x</p>';
 check('Scanner: Entities drumherum zaehlen nicht', scanned($page) === ['i@b.de encoded html 1'], implode(', ', scanned($page)));
 
+// .github/README.md muss zur readme.txt passen: `php bin/readme-md.php`.
+require __DIR__ . '/../bin/readme-md.php';
+$expected = readmeToMarkdown((string) file_get_contents(__DIR__ . '/../readme.txt'));
+check('README.md aktuell (php bin/readme-md.php)', @file_get_contents(__DIR__ . '/../.github/README.md') === $expected);
+
 echo $failures === 0 ? "OK ({$count} Pruefungen)\n" : "{$failures} von {$count} Pruefungen fehlgeschlagen\n";
 exit($failures === 0 ? 0 : 1);
