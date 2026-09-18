@@ -10,8 +10,9 @@ namespace EmailObfuscate;
  * Jedes Zeichen einer Adresse wird zur Zeichenreferenz (`&#64;` statt `@`).
  * Browser zeigen und verlinken die Adresse unveraendert, im Quelltext - dem,
  * was Adresssammler lesen - steht sie nicht mehr. Anders als WordPress'
- * antispambot() wird *jedes* Zeichen kodiert: antispambot() laesst zufaellig
- * etwa die Haelfte offen, auch das `@`.
+ * antispambot() wird *jedes* Zeichen kodiert: antispambot() kodiert zwar
+ * immer das `@`, laesst von den uebrigen Zeichen aber zufaellig etwa die
+ * Haelfte offen.
  *
  * Zeichenreferenzen wirken nur dort, wo der Browser HTML liest: im Text und
  * in Attributwerten (also auch in `href="mailto:…"`). Deshalb bleiben aussen

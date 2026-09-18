@@ -171,7 +171,12 @@ final class Admin
 
         ?>
         <p><strong><?php echo esc_html($status); ?></strong></p>
-        <p><code style="word-break: break-all;"><?php echo esc_html($encoded); ?></code></p>
+        <?php
+        // Nicht esc_html(): das laesst vorhandene Zeichenreferenzen stehen, der
+        // Browser wuerde sie wieder uebersetzen und hier Klartext zeigen.
+        $source = htmlspecialchars($encoded, ENT_QUOTES, 'UTF-8', true);
+        ?>
+        <p><code style="word-break: break-all;"><?php echo $source; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- mit htmlspecialchars() maskiert. ?></code></p>
         <p><?php esc_html_e('Der Browser zeigt:', 'email-obfuscate'); ?> <?php echo $encoded; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- aus esc_html() und Zeichenreferenzen gebaut. ?></p>
         <?php
     }
