@@ -17,9 +17,13 @@ namespace EmailObfuscate;
  */
 final class Plugin
 {
-    public static function register(): void
+    public static function register(string $pluginFile): void
     {
         add_action('template_redirect', [self::class, 'startBuffer'], PHP_INT_MAX);
+
+        if (is_admin()) {
+            Admin::register($pluginFile);
+        }
     }
 
     public static function startBuffer(): void
@@ -43,7 +47,9 @@ final class Plugin
             return $buffer;
         }
 
-        return Encoder::encodeHtml($buffer);
+        $settings = Settings::get();
+
+        return Encoder::encodeHtml($buffer, $settings['excluded_addresses'], $settings['encode_json']);
     }
 
     private static function appliesToRequest(): bool
@@ -64,8 +70,26 @@ final class Plugin
             return false;
         }
 
+        $settings = Settings::get();
+        if (!$settings['enabled'] || Settings::isExcludedPath(self::requestPath(), $settings['excluded_paths'])) {
+            return false;
+        }
+
         /** Abschalten fuer einzelne Anfragen: add_filter('email_obfuscate_enabled', '__return_false'). */
         return (bool) apply_filters('email_obfuscate_enabled', true);
+    }
+
+    /** Der angefragte Pfad relativ zur Startseite, auch bei WordPress im Unterordner. */
+    private static function requestPath(): string
+    {
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- nur mit Mustern verglichen.
+        $path = rawurldecode((string) wp_parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH));
+        $home = rtrim((string) wp_parse_url(home_url('/'), PHP_URL_PATH), '/');
+        if ($home !== '' && str_starts_with($path, $home)) {
+            $path = substr($path, strlen($home));
+        }
+
+        return '/' . ltrim($path, '/');
     }
 
     private static function isHtmlResponse(): bool

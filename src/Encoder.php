@@ -32,7 +32,12 @@ final class Encoder
 
     private const PROTECTED = '#(<script\b[^>]*>.*?</script\s*>|<style\b[^>]*>.*?</style\s*>|<!--.*?-->)#is';
 
-    public static function encodeHtml(string $html): string
+    /**
+     * @param list<string> $exceptions Adressen (`name@domain.de`) oder Domains
+     *                                 (`@domain.de`), die Klartext bleiben.
+     * @param bool         $encodeJson Adressen in JSON-Bloecken mitkodieren.
+     */
+    public static function encodeHtml(string $html, array $exceptions = [], bool $encodeJson = true): string
     {
         if (strpos($html, '@') === false) {
             return $html;
@@ -45,9 +50,9 @@ final class Encoder
 
         foreach ($parts as $index => $part) {
             if ($index % 2 === 0) {
-                $parts[$index] = self::encodeText($part);
-            } elseif (self::isJsonScript($part)) {
-                $parts[$index] = self::encodeJson($part);
+                $parts[$index] = self::encodeText($part, $exceptions);
+            } elseif ($encodeJson && self::isJsonScript($part)) {
+                $parts[$index] = self::encodeJson($part, $exceptions);
             }
         }
 
@@ -55,23 +60,44 @@ final class Encoder
     }
 
     /** Adressen in HTML-Text und Attributwerten als Zeichenreferenzen. */
-    public static function encodeText(string $text): string
+    public static function encodeText(string $text, array $exceptions = []): string
     {
         return (string) preg_replace_callback(
             self::PATTERN,
-            static fn (array $match): string => self::entities($match[0]),
+            static fn (array $match): string => self::isException($match[0], $exceptions)
+                ? $match[0]
+                : self::entities($match[0]),
             $text
         );
     }
 
     /** Adressen in einem JSON-Block: nur das `@`, als `\u0040`. */
-    public static function encodeJson(string $script): string
+    public static function encodeJson(string $script, array $exceptions = []): string
     {
         return (string) preg_replace_callback(
             self::PATTERN,
-            static fn (array $match): string => str_replace('@', '\\u0040', $match[0]),
+            static fn (array $match): string => self::isException($match[0], $exceptions)
+                ? $match[0]
+                : str_replace('@', '\\u0040', $match[0]),
             $script
         );
+    }
+
+    /**
+     * Eine Ausnahme ist eine ganze Adresse oder, mit `@` vorn, eine Domain.
+     * Gross-/Kleinschreibung zaehlt nicht.
+     */
+    public static function isException(string $address, array $exceptions): bool
+    {
+        $address = strtolower($address);
+        foreach ($exceptions as $exception) {
+            $exception = strtolower($exception);
+            if ($exception === $address || (str_starts_with($exception, '@') && str_ends_with($address, $exception))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static function isJsonScript(string $block): bool

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tests fuer den Encoder, ohne Composer: `php tests/run.php`.
+ * Tests fuer Encoder und Pfadabgleich, ohne Composer: `php tests/run.php`.
  * Exit-Code 0 = alles gruen, 1 = mindestens ein Fehler.
  *
  * Jeder Fall prueft beide Seiten: roh keine Adresse mehr, und nach dem
@@ -11,8 +11,10 @@
 declare(strict_types=1);
 
 require __DIR__ . '/../src/Encoder.php';
+require __DIR__ . '/../src/Settings.php';
 
 use EmailObfuscate\Encoder;
+use EmailObfuscate\Settings;
 
 $failures = 0;
 $count = 0;
@@ -86,6 +88,38 @@ check('Mehrere: dekodiert gleich', html_entity_decode($out, ENT_QUOTES) === $htm
 
 // Seite ohne @: unveraendert zurueck.
 check('Ohne @ unveraendert', Encoder::encodeHtml('<p>nichts</p>') === '<p>nichts</p>');
+
+// Ausnahmen: ganze Adresse und Domain, ohne Ruecksicht auf Gross-/Kleinschreibung.
+$html = '<p>Info@Example.org, a@team.example.org, b@example.org, gebet@cg-ks.de</p>';
+$out = Encoder::encodeHtml($html, ['info@example.org', '@team.example.org']);
+check('Ausnahme: Adresse bleibt', strpos($out, 'Info@Example.org') !== false, $out);
+check('Ausnahme: Domain bleibt', strpos($out, 'a@team.example.org') !== false, $out);
+check('Ausnahme: andere Domain kodiert', strpos($out, 'b@example.org') === false, $out);
+check('Ausnahme: uebrige kodiert', strpos($out, $address) === false, $out);
+check('Ausnahme: dekodiert gleich', html_entity_decode($out, ENT_QUOTES) === $html, $out);
+check('Ausnahme: keine Teildomain', !Encoder::isException('a@xexample.org', ['@example.org']));
+
+// Ausnahmen gelten auch in JSON-LD.
+$ld = '<script type="application/ld+json">{"email":"info@example.org"}</script>';
+check('Ausnahme: JSON-LD bleibt', Encoder::encodeHtml($ld, ['@example.org']) === $ld);
+
+// JSON-LD abgeschaltet: Block unveraendert, Text trotzdem kodiert.
+$html = '<script type="application/ld+json">{"email":"gebet@cg-ks.de"}</script><p>gebet@cg-ks.de</p>';
+$out = Encoder::encodeHtml($html, [], false);
+check('JSON aus: Block unveraendert', strpos($out, '{"email":"gebet@cg-ks.de"}') !== false, $out);
+check('JSON aus: Text kodiert', substr_count($out, $address) === 1, $out);
+
+// Pfadabgleich.
+$patterns = ['/impressum/', '/shop/*', '/blog/*-entwurf'];
+foreach (['/impressum', '/impressum/', '/IMPRESSUM/', '/shop', '/shop/', '/shop/a/b/', '/blog/2026-entwurf/'] as $path) {
+    check("Pfad ausgeschlossen: {$path}", Settings::isExcludedPath($path, $patterns));
+}
+foreach (['/', '/impressum/alt/', '/shopping/', '/blog/beitrag/', '/kontakt/'] as $path) {
+    check("Pfad nicht ausgeschlossen: {$path}", !Settings::isExcludedPath($path, $patterns));
+}
+check('Pfad: Startseite per /', Settings::isExcludedPath('/', ['/']));
+check('Pfad: / trifft nicht alles', !Settings::isExcludedPath('/kontakt/', ['/']));
+check('Pfad: Regex-Zeichen woertlich', !Settings::isExcludedPath('/axb/', ['/a.b/']));
 
 echo $failures === 0 ? "OK ({$count} Pruefungen)\n" : "{$failures} von {$count} Pruefungen fehlgeschlagen\n";
 exit($failures === 0 ? 0 : 1);
