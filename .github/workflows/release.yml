@@ -1,6 +1,10 @@
 # Ein gepushter Tag wie 1.2.0 wird zum Release: Tests, Versionsabgleich,
 # Plugin-ZIP mit dem Ordner email-obfuscate/, Changelog aus der readme.txt.
 # Die ZIP-Datei ist das Paket, das der Updater im Plugin installiert.
+#
+# GitHub loest einen Tag-Push gelegentlich doppelt aus: concurrency laesst
+# solche Laeufe nacheinander statt gleichzeitig laufen, und ein Lauf, der das
+# Release schon vorfindet, endet ohne Fehler.
 name: Release
 
 on:
@@ -9,6 +13,10 @@ on:
 
 permissions:
   contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   release:
@@ -33,6 +41,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::notice::Release ${GITHUB_REF_NAME} gibt es schon, nichts zu tun."
+            exit 0
+          fi
           awk -v head="= ${GITHUB_REF_NAME} =" '$0 == head { found = 1; next } /^= / { found = 0 } found' readme.txt > notes.md
           gh release create "$GITHUB_REF_NAME" "email-obfuscate-${GITHUB_REF_NAME}.zip" \
             --title "Email Obfuscate ${GITHUB_REF_NAME}" --notes-file notes.md
