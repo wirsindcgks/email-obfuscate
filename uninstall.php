@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Entfernt die Einstellungen beim Loeschen des Plugins, in einer Multisite
- * auf jeder Website.
+ * Entfernt Einstellungen und zwischengespeichertes Release beim Loeschen
+ * des Plugins, die Einstellungen in einer Multisite auf jeder Website.
  */
 
 declare(strict_types=1);
@@ -20,3 +20,5 @@ if (is_multisite()) {
 } else {
     delete_option('email_obfuscate_settings');
 }
+
+delete_site_transient('email_obfuscate_release');

@@ -4,7 +4,7 @@ Tags: email, spam, antispam, obfuscation
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 1.1.1
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -34,13 +34,18 @@ Unter *Einstellungen → E-Mail-Verschleierung*:
 
 Die Einstellungen liegen in einer einzigen Option und werden beim Löschen des Plugins entfernt. Nach dem Speichern den Seiten-Cache leeren.
 
+== Updates ==
+
+Das Plugin holt Updates aus den Releases auf GitHub (https://github.com/wirsindcgks/email-obfuscate/releases). Sie erscheinen unter *Dashboard → Aktualisierungen* wie bei jedem anderen Plugin, auch automatische Updates lassen sich einschalten. wordpress.org wird für dieses Plugin nicht gefragt.
+
 Abschalten für einzelne Anfragen per Code: `add_filter( 'email_obfuscate_enabled', '__return_false' );`
 
 Prüfen: im Seitenquelltext (nicht im Web-Inspektor, der zeigt die übersetzte Fassung) nach `@` plus Domain suchen.
 
 == Changelog ==
 
-= 1.1.1 =
+= 1.2.0 =
+* Updates direkt aus den GitHub-Releases, im Dashboard wie jedes andere Plugin
 * Testfeld zeigt den Quelltext jetzt kodiert statt im Klartext
 
 = 1.1.0 =

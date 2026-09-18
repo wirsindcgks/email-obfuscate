@@ -1,0 +1,38 @@
+# Ein gepushter Tag wie 1.2.0 wird zum Release: Tests, Versionsabgleich,
+# Plugin-ZIP mit dem Ordner email-obfuscate/, Changelog aus der readme.txt.
+# Die ZIP-Datei ist das Paket, das der Updater im Plugin installiert.
+name: Release
+
+on:
+  push:
+    tags: ['[0-9]+.[0-9]+.[0-9]+']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tests
+        run: php tests/run.php
+
+      - name: Version pruefen
+        run: |
+          tag="$GITHUB_REF_NAME"
+          grep -Eq "^ \* Version: +${tag}$" email-obfuscate.php || { echo "::error::Version im Plugin-Header ist nicht ${tag}"; exit 1; }
+          grep -q "^Stable tag: ${tag}$" readme.txt || { echo "::error::Stable tag in readme.txt ist nicht ${tag}"; exit 1; }
+          grep -q "^= ${tag} =$" readme.txt || { echo "::error::Kein Changelog-Eintrag fuer ${tag}"; exit 1; }
+
+      - name: ZIP bauen
+        run: git archive --format=zip --prefix=email-obfuscate/ -o "email-obfuscate-${GITHUB_REF_NAME}.zip" HEAD
+
+      - name: Release anlegen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          awk -v head="= ${GITHUB_REF_NAME} =" '$0 == head { found = 1; next } /^= / { found = 0 } found' readme.txt > notes.md
+          gh release create "$GITHUB_REF_NAME" "email-obfuscate-${GITHUB_REF_NAME}.zip" \
+            --title "Email Obfuscate ${GITHUB_REF_NAME}" --notes-file notes.md

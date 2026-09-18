@@ -1,0 +1,5 @@
+# Nicht in die Plugin-ZIP (git archive)
+/.gitattributes export-ignore
+/.github export-ignore
+/.vscode export-ignore
+/tests export-ignore

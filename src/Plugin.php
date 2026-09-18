@@ -21,6 +21,9 @@ final class Plugin
     {
         add_action('template_redirect', [self::class, 'startBuffer'], PHP_INT_MAX);
 
+        // Nicht nur im Admin: WordPress prueft Updates auch per Cron.
+        Updater::register($pluginFile);
+
         if (is_admin()) {
             Admin::register($pluginFile);
         }

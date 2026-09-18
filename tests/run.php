@@ -12,9 +12,11 @@ declare(strict_types=1);
 
 require __DIR__ . '/../src/Encoder.php';
 require __DIR__ . '/../src/Settings.php';
+require __DIR__ . '/../src/Updater.php';
 
 use EmailObfuscate\Encoder;
 use EmailObfuscate\Settings;
+use EmailObfuscate\Updater;
 
 $failures = 0;
 $count = 0;
@@ -120,6 +122,21 @@ foreach (['/', '/impressum/alt/', '/shopping/', '/blog/beitrag/', '/kontakt/'] a
 check('Pfad: Startseite per /', Settings::isExcludedPath('/', ['/']));
 check('Pfad: / trifft nicht alles', !Settings::isExcludedPath('/kontakt/', ['/']));
 check('Pfad: Regex-Zeichen woertlich', !Settings::isExcludedPath('/axb/', ['/a.b/']));
+
+// Updater: Release aus der GitHub-API lesen.
+$zip = ['name' => 'email-obfuscate-1.2.0.zip', 'browser_download_url' => 'https://github.com/x/email-obfuscate-1.2.0.zip'];
+$source = ['name' => 'quelle.zip', 'browser_download_url' => 'https://github.com/x/quelle.zip'];
+$release = Updater::parseRelease(['tag_name' => 'v1.2.0', 'html_url' => 'https://github.com/x', 'body' => '* neu', 'assets' => [$source, $zip]]);
+check('Release: Version ohne v', ($release['version'] ?? '') === '1.2.0', var_export($release, true));
+check('Release: Plugin-ZIP als Paket', ($release['package'] ?? '') === $zip['browser_download_url'], var_export($release, true));
+check('Release: ohne ZIP kein Update', Updater::parseRelease(['tag_name' => '1.2.0', 'assets' => [$source]]) === null);
+check('Release: Entwurf kein Update', Updater::parseRelease(['tag_name' => '1.2.0', 'draft' => true, 'assets' => [$zip]]) === null);
+check('Release: Vorabversion kein Update', Updater::parseRelease(['tag_name' => '1.2.0', 'prerelease' => true, 'assets' => [$zip]]) === null);
+check('Release: Tag ohne Version kein Update', Updater::parseRelease(['tag_name' => 'latest', 'assets' => [$zip]]) === null);
+
+// Release-Notizen als HTML, mit maskiertem HTML aus den Notizen.
+$html = Updater::notesToHtml("Neu: **fett**\n\n* `a@b` <b>\n- zwei\n\nSchluss");
+check('Notizen: HTML', $html === "<p>Neu: <strong>fett</strong></p>\n<ul>\n<li><code>a@b</code> &lt;b&gt;</li>\n<li>zwei</li>\n</ul>\n<p>Schluss</p>\n", $html);
 
 echo $failures === 0 ? "OK ({$count} Pruefungen)\n" : "{$failures} von {$count} Pruefungen fehlgeschlagen\n";
 exit($failures === 0 ? 0 : 1);
