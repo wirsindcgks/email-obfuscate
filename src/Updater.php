@@ -24,6 +24,8 @@ final class Updater
 
     private const CACHE = 'email_obfuscate_release';
 
+    private const CHECK_ACTION = 'email_obfuscate_check_update';
+
     private static string $pluginFile = '';
 
     public static function register(string $pluginFile): void
@@ -32,6 +34,110 @@ final class Updater
 
         add_filter('update_plugins_github.com', [self::class, 'checkUpdate'], 10, 3);
         add_filter('plugins_api', [self::class, 'pluginInfo'], 20, 3);
+
+        add_filter('plugin_row_meta', [self::class, 'addCheckLink'], 10, 2);
+        add_action('load-plugins.php', [self::class, 'handleCheck']);
+        add_action('admin_notices', [self::class, 'showCheckNotice']);
+        add_action('network_admin_notices', [self::class, 'showCheckNotice']);
+        add_filter('removable_query_args', [self::class, 'removableQueryArgs']);
+    }
+
+    /**
+     * "Nach Updates suchen" in der Plugin-Liste, neben "Details ansehen".
+     *
+     * @param list<string> $meta
+     * @return list<string>
+     */
+    public static function addCheckLink(array $meta, string $pluginFile): array
+    {
+        if ($pluginFile !== plugin_basename(self::$pluginFile) || !current_user_can('update_plugins')) {
+            return $meta;
+        }
+
+        $url = wp_nonce_url(add_query_arg('email_obfuscate_check', '1', self_admin_url('plugins.php')), self::CHECK_ACTION);
+        $meta[] = '<a href="' . esc_url($url) . '">' . esc_html__('Nach Updates suchen', 'email-obfuscate') . '</a>';
+
+        return $meta;
+    }
+
+    /**
+     * Fragt GitHub sofort: eigenen Zwischenspeicher und den von WordPress
+     * leeren, pruefen lassen, zurueck zur Plugin-Liste mit dem Ergebnis.
+     * Die Weiterleitung verhindert, dass ein Neuladen erneut prueft.
+     */
+    public static function handleCheck(): void
+    {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce folgt in check_admin_referer().
+        if (!isset($_GET['email_obfuscate_check'])) {
+            return;
+        }
+
+        check_admin_referer(self::CHECK_ACTION);
+        if (!current_user_can('update_plugins')) {
+            wp_die(esc_html__('Du darfst keine Plugins aktualisieren.', 'email-obfuscate'), '', ['response' => 403]);
+        }
+
+        delete_site_transient(self::CACHE);
+        delete_site_transient('update_plugins');
+        wp_update_plugins();
+
+        $release = get_site_transient(self::CACHE);
+        $updates = get_site_transient('update_plugins');
+        $result = match (true) {
+            !is_array($release) || $release === [] => 'failed',
+            is_object($updates) && isset($updates->response[plugin_basename(self::$pluginFile)]) => 'available',
+            default => 'current',
+        };
+
+        wp_safe_redirect(add_query_arg([
+            'email_obfuscate_checked' => $result,
+            'email_obfuscate_version' => is_array($release) ? ($release['version'] ?? '') : '',
+        ], self_admin_url('plugins.php')));
+        exit;
+    }
+
+    public static function showCheckNotice(): void
+    {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- nur angezeigt.
+        if (($GLOBALS['pagenow'] ?? '') !== 'plugins.php' || !isset($_GET['email_obfuscate_checked']) || !current_user_can('update_plugins')) {
+            return;
+        }
+
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended
+        $result = sanitize_key(wp_unslash($_GET['email_obfuscate_checked']));
+        $version = sanitize_text_field(wp_unslash($_GET['email_obfuscate_version'] ?? ''));
+        // phpcs:enable
+
+        [$type, $message] = match ($result) {
+            'available' => ['warning', sprintf(
+                /* translators: %s: Versionsnummer */
+                __('Email Obfuscate: Version %s ist verfügbar.', 'email-obfuscate'),
+                $version
+            )],
+            'current' => ['success', sprintf(
+                /* translators: %s: Versionsnummer */
+                __('Email Obfuscate ist aktuell (Version %s).', 'email-obfuscate'),
+                get_plugin_data(self::$pluginFile, false, false)['Version']
+            )],
+            default => ['error', __('Email Obfuscate: GitHub war nicht erreichbar. Bitte später erneut versuchen.', 'email-obfuscate')],
+        };
+
+        printf('<div class="notice notice-%s is-dismissible"><p>%s</p></div>', esc_attr($type), esc_html($message));
+    }
+
+    /**
+     * Die Parameter aus der Adresszeile entfernen, damit ein Lesezeichen
+     * oder Neuladen den Hinweis nicht wieder zeigt.
+     *
+     * @param list<string> $args
+     * @return list<string>
+     */
+    public static function removableQueryArgs(array $args): array
+    {
+        $args[] = 'email_obfuscate_checked';
+        $args[] = 'email_obfuscate_version';
+
+        return $args;
     }
 
     /**
