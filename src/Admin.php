@@ -211,8 +211,44 @@ final class Admin
             <span id="eo-scan-status" class="eo-scan-status" aria-live="polite"></span>
         </p>
         <progress id="eo-scan-progress" class="eo-scan-progress" hidden></progress>
+        <?php self::renderLegend(); ?>
         <div id="eo-scan-report" class="eo-scan-report"></div>
         <noscript><p><?php esc_html_e('Die Prüfung braucht JavaScript.', 'email-obfuscate'); ?></p></noscript>
+        <?php
+    }
+
+    /** Erklaert die Einordnung im Bericht - dieselben Begriffe und Farben. */
+    private static function renderLegend(): void
+    {
+        $categories = [
+            ['eo-scan-open', __('Offen', 'email-obfuscate'), __('Die Adresse steht lesbar im Quelltext, Adresssammler finden sie. Unter der Adresse steht der Grund und was zu tun ist.', 'email-obfuscate')],
+            ['', __('Verschleiert', 'email-obfuscate'), __('Jedes Zeichen ist kodiert – so schreibt Email Obfuscate Adressen. Nichts zu tun.', 'email-obfuscate')],
+            ['eo-scan-partial', __('teilweise verschleiert', 'email-obfuscate'), __('Ein anderes Plugin (etwa das ChurchTools-Plugin) hat die Adresse mit der WordPress-Funktion antispambot() verschleiert: Das @ ist immer kodiert, einzelne Buchstaben nicht. Einfache Sammler finden die Adresse so nicht, deshalb lässt Email Obfuscate sie unverändert. Nichts zu tun.', 'email-obfuscate')],
+        ];
+        $additions = [
+            ['×2', __('So oft steht die Adresse auf der Seite. Ein Link zählt meist doppelt: einmal im mailto-Link, einmal im sichtbaren Text.', 'email-obfuscate')],
+            [__('in JSON-LD', 'email-obfuscate'), __('In strukturierten Daten für Suchmaschinen. Verschleiert heißt dort: Das @ ist als \u0040 geschrieben.', 'email-obfuscate')],
+            [__('in <script> / <style> / HTML-Kommentar', 'email-obfuscate'), __('In Bereichen, die das Plugin nicht verändert, weil Browser dort keine verschleierte Adresse lesen könnten. Steht eine Adresse dort offen, muss sie im Theme- oder Plugin-Baustein selbst entfernt werden.', 'email-obfuscate')],
+            [__('Fehler in der Spalte „Offen“', 'email-obfuscate'), __('Die Seite war nicht abrufbar, etwa HTTP 404 oder eine Weiterleitung. Über ihre Adressen sagt der Bericht dann nichts.', 'email-obfuscate')],
+        ];
+
+        ?>
+        <details class="eo-scan-legend">
+            <summary><?php esc_html_e('Was bedeuten die Ergebnisse?', 'email-obfuscate'); ?></summary>
+            <dl>
+                <?php foreach ($categories as [$class, $term, $description]) : ?>
+                    <dt><span class="<?php echo esc_attr($class); ?>"><?php echo esc_html($term); ?></span></dt>
+                    <dd><?php echo esc_html($description); ?></dd>
+                <?php endforeach; ?>
+            </dl>
+            <p><strong><?php esc_html_e('Zusätze hinter einer Adresse', 'email-obfuscate'); ?></strong></p>
+            <dl>
+                <?php foreach ($additions as [$term, $description]) : ?>
+                    <dt><code><?php echo esc_html($term); ?></code></dt>
+                    <dd><?php echo esc_html($description); ?></dd>
+                <?php endforeach; ?>
+            </dl>
+        </details>
         <?php
     }
 

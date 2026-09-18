@@ -31,6 +31,37 @@
     color: #996800;
 }
 
+.eo-scan-legend {
+    max-width: 800px;
+    margin: 0 0 16px;
+}
+
+.eo-scan-legend summary {
+    cursor: pointer;
+    color: #2271b1;
+}
+
+.eo-scan-legend dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 6px 16px;
+    margin: 12px 0;
+}
+
+.eo-scan-legend dt {
+    font-weight: 600;
+}
+
+.eo-scan-legend dd {
+    margin: 0;
+}
+
+@media (max-width: 600px) {
+    .eo-scan-legend dl {
+        grid-template-columns: 1fr;
+    }
+}
+
 .eo-scan-table.eo-scan-only-open .eo-scan-clean {
     display: none;
 }

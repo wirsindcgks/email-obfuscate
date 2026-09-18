@@ -4,7 +4,7 @@ Tags: email, spam, antispam, obfuscation
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 1.3.1
+Stable tag: 1.3.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,7 +65,7 @@ Ruft jede Seite aus den Sitemaps so ab, wie Besucher und Sammler sie bekommen, u
 * **Verschleiert** – vollständig geschützt.
 * **Teilweise verschleiert** – ein anderes Plugin hat die Adresse mit der WordPress-eigenen Funktion verschleiert. Das @ ist immer geschützt, einzelne Buchstaben nicht. Das reicht gegen einfache Sammler.
 
-Je nach Größe der Website dauert die Prüfung ein bis drei Minuten. Der letzte Bericht bleibt gespeichert.
+Unter dem Button erklärt „Was bedeuten die Ergebnisse?“ alle Begriffe des Berichts. Je nach Größe der Website dauert die Prüfung ein bis drei Minuten. Der letzte Bericht bleibt gespeichert.
 
 == Updates ==
 
@@ -104,6 +104,9 @@ Abschalten für einzelne Anfragen: `add_filter( 'email_obfuscate_enabled', '__re
 Tests: `php tests/run.php`. Ein Release entsteht, wenn ein Tag wie `1.4.0` gepusht wird; der Workflow prüft Versionsnummer, `Stable tag` und Changelog-Eintrag.
 
 == Changelog ==
+
+= 1.3.2 =
+* Website prüfen: „Was bedeuten die Ergebnisse?“ erklärt offen, verschleiert, teilweise verschleiert und die Zusätze im Bericht
 
 = 1.3.1 =
 * Link „Nach Updates suchen“ in der Plugin-Liste: fragt GitHub sofort statt nach bis zu sechs Stunden
