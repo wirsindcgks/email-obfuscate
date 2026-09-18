@@ -3,7 +3,7 @@
 /**
  * Plugin Name:       Email Obfuscate
  * Description:       Verschleiert alle E-Mail-Adressen der Website im Quelltext, auch in Header, Footer, Widgets und Theme-Optionen. Besucher sehen und klicken sie unverändert.
- * Version:           1.2.0
+ * Version:           1.3.0
  * Requires at least: 6.4
  * Requires PHP:      8.1
  * Author:            wirsindcgks
@@ -22,6 +22,8 @@ if (!defined('ABSPATH')) {
 require_once __DIR__ . '/src/Encoder.php';
 require_once __DIR__ . '/src/Settings.php';
 require_once __DIR__ . '/src/Admin.php';
+require_once __DIR__ . '/src/Scanner.php';
+require_once __DIR__ . '/src/ScanApi.php';
 require_once __DIR__ . '/src/Updater.php';
 require_once __DIR__ . '/src/Plugin.php';
 

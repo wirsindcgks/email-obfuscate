@@ -4,7 +4,7 @@ Tags: email, spam, antispam, obfuscation
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -31,8 +31,9 @@ Unter *Einstellungen → E-Mail-Verschleierung*:
 * **Ausgeschlossene Seiten**: ein Pfad pro Zeile, zum Beispiel `/impressum/`. `*` steht für beliebig viele Zeichen, `/shop/*` trifft `/shop` und alle Unterseiten.
 * **Ausgenommene Adressen**: eine Adresse pro Zeile oder `@domain.de` für eine ganze Domain. Sie bleiben im Klartext.
 * **Testen**: zeigt für eine eingegebene Adresse, was im Quelltext steht.
+* **Website prüfen**: ruft jede Seite aus den Sitemaps so ab, wie Besucher sie bekommen (mit Seiten-Cache), und listet pro Seite offene, verschleierte und teilweise verschleierte Adressen. Bei offenen Adressen nennt der Bericht den Grund, etwa eine veraltete Fassung im Seiten-Cache oder eine Adresse in einem Script. Nicht erfasst: per AJAX nachgeladene Inhalte und PDF-Dateien.
 
-Die Einstellungen liegen in einer einzigen Option und werden beim Löschen des Plugins entfernt. Nach dem Speichern den Seiten-Cache leeren.
+Einstellungen und letzter Prüfbericht liegen in je einer Option und werden beim Löschen des Plugins entfernt. Nach dem Speichern den Seiten-Cache leeren.
 
 == Updates ==
 
@@ -43,6 +44,9 @@ Abschalten für einzelne Anfragen per Code: `add_filter( 'email_obfuscate_enable
 Prüfen: im Seitenquelltext (nicht im Web-Inspektor, der zeigt die übersetzte Fassung) nach `@` plus Domain suchen.
 
 == Changelog ==
+
+= 1.3.0 =
+* Website prüfen: Bericht über alle Seiten aus den Sitemaps, mit Grund für jede offene Adresse
 
 = 1.2.0 =
 * Updates direkt aus den GitHub-Releases, im Dashboard wie jedes andere Plugin

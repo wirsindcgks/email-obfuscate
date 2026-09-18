@@ -31,7 +31,7 @@ final class Encoder
      */
     public const PATTERN = '/[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/';
 
-    private const PROTECTED = '#(<script\b[^>]*>.*?</script\s*>|<style\b[^>]*>.*?</style\s*>|<!--.*?-->)#is';
+    public const PROTECTED = '#(<script\b[^>]*>.*?</script\s*>|<style\b[^>]*>.*?</style\s*>|<!--.*?-->)#is';
 
     /**
      * @param list<string> $exceptions Adressen (`name@domain.de`) oder Domains
@@ -101,7 +101,7 @@ final class Encoder
         return false;
     }
 
-    private static function isJsonScript(string $block): bool
+    public static function isJsonScript(string $block): bool
     {
         return (bool) preg_match('#^<script\b[^>]*\btype\s*=\s*["\']?application/(ld\+)?json#i', $block);
     }

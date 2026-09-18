@@ -1,0 +1,36 @@
+.eo-scan-status {
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.eo-scan-progress {
+    width: 100%;
+    max-width: 480px;
+    height: 12px;
+}
+
+.eo-scan-report .notice p {
+    margin: 0.5em 0;
+}
+
+.eo-scan-table ul {
+    margin: 0;
+}
+
+.eo-scan-table li {
+    margin: 0 0 4px;
+    word-break: break-word;
+}
+
+.eo-scan-open,
+.eo-scan-error {
+    color: #b32d2e;
+}
+
+.eo-scan-partial {
+    color: #996800;
+}
+
+.eo-scan-table.eo-scan-only-open .eo-scan-clean {
+    display: none;
+}

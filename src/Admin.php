@@ -6,7 +6,8 @@ namespace EmailObfuscate;
 
 /**
  * Die Seite unter Einstellungen > E-Mail-Verschleierung, gebaut mit der
- * Settings API, dazu der Link "Einstellungen" in der Plugin-Liste.
+ * Settings API, dazu der Link "Einstellungen" in der Plugin-Liste und der
+ * Bericht "Website pruefen" (JavaScript nur auf dieser Seite).
  */
 final class Admin
 {
@@ -14,9 +15,14 @@ final class Admin
 
     private const GROUP = 'email_obfuscate';
 
+    private static string $pluginFile = '';
+
     public static function register(string $pluginFile): void
     {
+        self::$pluginFile = $pluginFile;
+
         add_action('admin_menu', [self::class, 'addPage']);
+        add_action('admin_enqueue_scripts', [self::class, 'enqueueAssets']);
         add_action('admin_init', [self::class, 'registerSettings']);
         add_filter('plugin_action_links_' . plugin_basename($pluginFile), [self::class, 'addActionLink']);
     }
@@ -30,6 +36,65 @@ final class Admin
             self::PAGE,
             [self::class, 'renderPage']
         );
+    }
+
+    public static function enqueueAssets(string $hookSuffix): void
+    {
+        if ($hookSuffix !== 'settings_page_' . self::PAGE) {
+            return;
+        }
+
+        $dir = plugin_dir_path(self::$pluginFile) . 'assets/';
+        $url = plugin_dir_url(self::$pluginFile) . 'assets/';
+        wp_enqueue_style('email-obfuscate-scan', $url . 'scan.css', [], (string) filemtime($dir . 'scan.css'));
+        wp_enqueue_script('email-obfuscate-scan', $url . 'scan.js', [], (string) filemtime($dir . 'scan.js'), true);
+
+        $config = [
+            'root' => esc_url_raw(rest_url(ScanApi::NAMESPACE . '/')),
+            'nonce' => wp_create_nonce('wp_rest'),
+            'concurrency' => 3,
+            'last' => get_option(ScanApi::RESULT_OPTION, null),
+            'strings' => [
+                'collecting' => __('Sammle Seiten aus den Sitemaps …', 'email-obfuscate'),
+                /* translators: 1: geprüfte Seiten, 2: alle Seiten */
+                'progress' => __('%1$d von %2$d Seiten geprüft', 'email-obfuscate'),
+                'failed' => __('Prüfung fehlgeschlagen:', 'email-obfuscate'),
+                /* translators: 1: Datum, 2: Anzahl Seiten */
+                'summaryHead' => __('Letzte Prüfung: %1$s, %2$d Seiten.', 'email-obfuscate'),
+                /* translators: %d: Anzahl */
+                'summaryOpen' => __('%d offene Adressen', 'email-obfuscate'),
+                /* translators: %d: Anzahl */
+                'summaryEncoded' => __('%d verschleiert', 'email-obfuscate'),
+                /* translators: %d: Anzahl */
+                'summaryPartial' => __('%d teilweise verschleiert', 'email-obfuscate'),
+                /* translators: %d: Anzahl */
+                'summaryErrors' => __('nicht abrufbar: %d', 'email-obfuscate'),
+                'allClean' => __('Keine offene Adresse gefunden.', 'email-obfuscate'),
+                'hintCache' => __('Einige Seiten liefert der Seiten-Cache noch in einer alten Fassung aus. Cache leeren und erneut prüfen.', 'email-obfuscate'),
+                'hintLoopback' => __('Keine Seite war abrufbar. Vermutlich blockiert der Server oder eine Firewall (etwa Cloudflare) Anfragen der Website an sich selbst.', 'email-obfuscate'),
+                'onlyOpen' => __('Nur Seiten mit offenen Adressen zeigen', 'email-obfuscate'),
+                'colPage' => __('Seite', 'email-obfuscate'),
+                'colOpen' => __('Offen', 'email-obfuscate'),
+                'colEncoded' => __('Verschleiert', 'email-obfuscate'),
+                'partial' => __('teilweise', 'email-obfuscate'),
+                'noAddresses' => __('Auf keiner Seite steht eine E-Mail-Adresse.', 'email-obfuscate'),
+                'contexts' => [
+                    'script' => __('in <script>', 'email-obfuscate'),
+                    'style' => __('in <style>', 'email-obfuscate'),
+                    'comment' => __('in HTML-Kommentar', 'email-obfuscate'),
+                    'json' => __('in JSON-LD', 'email-obfuscate'),
+                ],
+                'reasons' => [
+                    'cache' => __('Veraltete Fassung im Seiten-Cache – Cache leeren.', 'email-obfuscate'),
+                    'protected' => __('Steht in Script, Style oder Kommentar – dort verschleiert das Plugin nicht, weil Browser dort keine Zeichenreferenzen lesen.', 'email-obfuscate'),
+                    'excluded' => __('Seite ist unter „Ausgeschlossene Seiten“ eingetragen.', 'email-obfuscate'),
+                    'exception' => __('Adresse ist unter „Ausgenommene Adressen“ eingetragen.', 'email-obfuscate'),
+                    'disabled' => __('Die Verschleierung ist ausgeschaltet.', 'email-obfuscate'),
+                    'unknown' => __('Die Seite läuft nicht durch das Plugin, etwa weil ein anderes Plugin sie direkt ausliefert.', 'email-obfuscate'),
+                ],
+            ],
+        ];
+        wp_add_inline_script('email-obfuscate-scan', 'window.emailObfuscateScan = ' . wp_json_encode($config) . ';', 'before');
     }
 
     /**
@@ -128,7 +193,26 @@ final class Admin
 
             <hr>
             <?php self::renderTester(); ?>
+
+            <hr>
+            <?php self::renderScan(); ?>
         </div>
+        <?php
+    }
+
+    /** Geruest fuer den Bericht, gefuellt von assets/scan.js. */
+    private static function renderScan(): void
+    {
+        ?>
+        <h2><?php esc_html_e('Website prüfen', 'email-obfuscate'); ?></h2>
+        <p><?php esc_html_e('Ruft jede Seite aus den Sitemaps so ab, wie Besucher und Adresssammler sie bekommen – mit Seiten-Cache – und zeigt, welche Adressen im Quelltext offen stehen und welche verschleiert sind. Inhalte, die per AJAX nachgeladen werden, und PDF-Dateien erfasst die Prüfung nicht.', 'email-obfuscate'); ?></p>
+        <p>
+            <button type="button" class="button button-primary" id="eo-scan-start"><?php esc_html_e('Website prüfen', 'email-obfuscate'); ?></button>
+            <span id="eo-scan-status" class="eo-scan-status" aria-live="polite"></span>
+        </p>
+        <progress id="eo-scan-progress" class="eo-scan-progress" hidden></progress>
+        <div id="eo-scan-report" class="eo-scan-report"></div>
+        <noscript><p><?php esc_html_e('Die Prüfung braucht JavaScript.', 'email-obfuscate'); ?></p></noscript>
         <?php
     }
 

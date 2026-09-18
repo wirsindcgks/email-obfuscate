@@ -23,6 +23,8 @@ final class Plugin
 
         // Nicht nur im Admin: WordPress prueft Updates auch per Cron.
         Updater::register($pluginFile);
+        // REST-Anfragen sind kein Admin-Bereich.
+        ScanApi::register();
 
         if (is_admin()) {
             Admin::register($pluginFile);
@@ -74,7 +76,8 @@ final class Plugin
         }
 
         $settings = Settings::get();
-        if (!$settings['enabled'] || Settings::isExcludedPath(self::requestPath(), $settings['excluded_paths'])) {
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- nur mit Mustern verglichen.
+        if (!$settings['enabled'] || Settings::isExcludedPath(self::relativePath($_SERVER['REQUEST_URI'] ?? '/'), $settings['excluded_paths'])) {
             return false;
         }
 
@@ -82,11 +85,13 @@ final class Plugin
         return (bool) apply_filters('email_obfuscate_enabled', true);
     }
 
-    /** Der angefragte Pfad relativ zur Startseite, auch bei WordPress im Unterordner. */
-    private static function requestPath(): string
+    /**
+     * Der Pfad einer URL oder Anfrage relativ zur Startseite, auch bei
+     * WordPress im Unterordner - so, wie ihn "Ausgeschlossene Seiten" erwartet.
+     */
+    public static function relativePath(string $uri): string
     {
-        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- nur mit Mustern verglichen.
-        $path = rawurldecode((string) wp_parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH));
+        $path = rawurldecode((string) wp_parse_url($uri, PHP_URL_PATH));
         $home = rtrim((string) wp_parse_url(home_url('/'), PHP_URL_PATH), '/');
         if ($home !== '' && str_starts_with($path, $home)) {
             $path = substr($path, strlen($home));
