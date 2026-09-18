@@ -223,7 +223,7 @@ final class Admin
         $categories = [
             ['eo-scan-open', __('Offen', 'email-obfuscate'), __('Die Adresse steht lesbar im Quelltext, Adresssammler finden sie. Unter der Adresse steht der Grund und was zu tun ist.', 'email-obfuscate')],
             ['', __('Verschleiert', 'email-obfuscate'), __('Jedes Zeichen ist kodiert – so schreibt Email Obfuscate Adressen. Nichts zu tun.', 'email-obfuscate')],
-            ['eo-scan-partial', __('teilweise verschleiert', 'email-obfuscate'), __('Ein anderes Plugin (etwa das ChurchTools-Plugin) hat die Adresse mit der WordPress-Funktion antispambot() verschleiert: Das @ ist immer kodiert, einzelne Buchstaben nicht. Einfache Sammler finden die Adresse so nicht, deshalb lässt Email Obfuscate sie unverändert. Nichts zu tun.', 'email-obfuscate')],
+            ['eo-scan-partial', __('teilweise verschleiert', 'email-obfuscate'), __('Ein anderes Plugin hat die Adresse mit der WordPress-Funktion antispambot() verschleiert: Das @ ist immer kodiert, einzelne Buchstaben nicht. Einfache Sammler finden die Adresse so nicht, deshalb lässt Email Obfuscate sie unverändert. Nichts zu tun.', 'email-obfuscate')],
         ];
         $additions = [
             ['×2', __('So oft steht die Adresse auf der Seite. Ein Link zählt meist doppelt: einmal im mailto-Link, einmal im sichtbaren Text.', 'email-obfuscate')],

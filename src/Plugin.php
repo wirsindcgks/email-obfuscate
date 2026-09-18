@@ -43,7 +43,7 @@ final class Plugin
     /**
      * Der Puffer-Callback. Er prueft den Content-Type erst hier, weil ein
      * Endpunkt ihn auch nach `template_redirect` noch setzen kann (die
-     * ICS-Datei des ChurchTools-Plugins, Sitemaps): Alles, was nicht HTML ist,
+     * Kalender-Dateien anderer Plugins, Sitemaps): Alles, was nicht HTML ist,
      * geht unveraendert durch.
      */
     public static function filterOutput(string $buffer): string

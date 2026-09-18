@@ -80,7 +80,7 @@ check('JSON-LD: dekodiert gleich', json_decode($inner, true) === json_decode($js
 $html = '<p>Folgt @cgks auf Instagram, Treffen @ Jugendraum, Preis 5 @ 2 Euro.</p>';
 check('Kein Fehltreffer', Encoder::encodeHtml($html) === $html, Encoder::encodeHtml($html));
 
-// Schon verschleierte Adressen (antispambot, ChurchTools-Plugin) bleiben, wie sie sind.
+// Schon verschleierte Adressen (antispambot() anderer Plugins) bleiben, wie sie sind.
 $html = '<p>g&#101;bet&#64;cg&#45;ks.de</p>';
 check('Bereits verschleiert unveraendert', Encoder::encodeHtml($html) === $html, Encoder::encodeHtml($html));
 

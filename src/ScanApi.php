@@ -59,8 +59,8 @@ final class ScanApi
 
     /**
      * Startseite plus alle Seiten aus den Sitemaps, die robots.txt nennt -
-     * so kommen auch Sitemaps anderer Plugins (etwa der ChurchTools-Termine)
-     * dazu. Ohne Eintrag in robots.txt die Sitemap von WordPress.
+     * so kommen auch Sitemaps anderer Plugins dazu. Ohne Eintrag in
+     * robots.txt die Sitemap von WordPress.
      */
     public static function urls(): array
     {

@@ -4,7 +4,7 @@ Tags: email, spam, antispam, obfuscation
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 1.3.2
+Stable tag: 1.3.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -104,6 +104,9 @@ Abschalten für einzelne Anfragen: `add_filter( 'email_obfuscate_enabled', '__re
 Tests: `php tests/run.php`. Ein Release entsteht, wenn ein Tag wie `1.4.0` gepusht wird; der Workflow prüft Versionsnummer, `Stable tag` und Changelog-Eintrag.
 
 == Changelog ==
+
+= 1.3.3 =
+* Erklärung zu teilweise verschleierten Adressen nennt keine einzelnen Plugins mehr
 
 = 1.3.2 =
 * Website prüfen: „Was bedeuten die Ergebnisse?“ erklärt offen, verschleiert, teilweise verschleiert und die Zusätze im Bericht
