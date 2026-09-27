@@ -4,3 +4,4 @@
 /.vscode export-ignore
 /tests export-ignore
 /bin export-ignore
+/plan.md export-ignore
