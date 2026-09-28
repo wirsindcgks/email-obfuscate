@@ -1,0 +1,46 @@
+# Laeuft bei jedem Pull Request und Push auf main. lint und test sind im
+# Ruleset "main – nur mit grüner CI" Pflicht-Checks: Wer die Job-Namen aendert,
+# muss sie dort mit aendern, sonst wartet jeder PR auf einen Check, der nie
+# kommt.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Ausdruecklich nur lesen, statt sich auf die Repo-Voreinstellung zu verlassen.
+permissions:
+  contents: read
+
+# Actions stehen auf einem Commit-SHA, nicht auf einem Tag. Ein Tag laesst sich
+# verschieben - wer die Action uebernimmt, liefe damit in diesem Workflow mit.
+# Die Version dahinter ist nur der Kommentar.
+jobs:
+  # PHP 8.1 ist die kleinste unterstuetzte Version (Requires PHP im
+  # Plugin-Header): Syntax, die erst spaeter kam, faellt hier auf.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.1'
+
+      - run: find . -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.1'
+
+      - run: php tests/run.php

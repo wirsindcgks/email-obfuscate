@@ -5,11 +5,16 @@
 # GitHub loest einen Tag-Push gelegentlich doppelt aus: concurrency laesst
 # solche Laeufe nacheinander statt gleichzeitig laufen, und ein Lauf, der das
 # Release schon vorfindet, endet ohne Fehler.
+#
+# Startet nach einem Tag-Push gar kein Lauf, hilft kein erneuter Push: Das
+# Ruleset "Release-Tags – unantastbar" verbietet, Tags zu loeschen. Stattdessen
+# den Lauf von Hand fuer den Tag starten: gh workflow run release.yml --ref 1.2.0
 name: Release
 
 on:
   push:
     tags: ['[0-9]+.[0-9]+.[0-9]+']
+  workflow_dispatch:
 
 permissions:
   contents: write
