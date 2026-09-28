@@ -1,6 +1,8 @@
-# Ein gepushter Tag wie 1.2.0 wird zum Release: Tests, Versionsabgleich,
+# Ein gepushter Tag wie v1.2.0 wird zum Release: Tests, Versionsabgleich,
 # Plugin-ZIP mit dem Ordner email-obfuscate/, Changelog aus der readme.txt.
 # Die ZIP-Datei ist das Paket, das der Updater im Plugin installiert.
+# Die Versionsnummer (Plugin-Header, readme.txt, ZIP-Name, Release-Titel)
+# steht ohne v, nur der Tag traegt es. Tags bis 1.3.4 haben kein v.
 #
 # GitHub loest einen Tag-Push gelegentlich doppelt aus: concurrency laesst
 # solche Laeufe nacheinander statt gleichzeitig laufen, und ein Lauf, der das
@@ -8,12 +10,12 @@
 #
 # Startet nach einem Tag-Push gar kein Lauf, hilft kein erneuter Push: Das
 # Ruleset "Release-Tags – unantastbar" verbietet, Tags zu loeschen. Stattdessen
-# den Lauf von Hand fuer den Tag starten: gh workflow run release.yml --ref 1.2.0
+# den Lauf von Hand fuer den Tag starten: gh workflow run release.yml --ref v1.2.0
 name: Release
 
 on:
   push:
-    tags: ['[0-9]+.[0-9]+.[0-9]+']
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
   workflow_dispatch:
 
 permissions:
@@ -27,6 +29,11 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      - name: Version aus dem Tag
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v5
 
       - name: Tests
@@ -34,13 +41,13 @@ jobs:
 
       - name: Version pruefen
         run: |
-          tag="$GITHUB_REF_NAME"
-          grep -Eq "^ \* Version: +${tag}$" email-obfuscate.php || { echo "::error::Version im Plugin-Header ist nicht ${tag}"; exit 1; }
-          grep -q "^Stable tag: ${tag}$" readme.txt || { echo "::error::Stable tag in readme.txt ist nicht ${tag}"; exit 1; }
-          grep -q "^= ${tag} =$" readme.txt || { echo "::error::Kein Changelog-Eintrag fuer ${tag}"; exit 1; }
+          [[ "$GITHUB_REF_NAME" == v* ]] || { echo "::error::Tag ${GITHUB_REF_NAME} beginnt nicht mit v"; exit 1; }
+          grep -Eq "^ \* Version: +${VERSION}$" email-obfuscate.php || { echo "::error::Version im Plugin-Header ist nicht ${VERSION}"; exit 1; }
+          grep -q "^Stable tag: ${VERSION}$" readme.txt || { echo "::error::Stable tag in readme.txt ist nicht ${VERSION}"; exit 1; }
+          grep -q "^= ${VERSION} =$" readme.txt || { echo "::error::Kein Changelog-Eintrag fuer ${VERSION}"; exit 1; }
 
       - name: ZIP bauen
-        run: git archive --format=zip --prefix=email-obfuscate/ -o "email-obfuscate-${GITHUB_REF_NAME}.zip" HEAD
+        run: git archive --format=zip --prefix=email-obfuscate/ -o "email-obfuscate-${VERSION}.zip" HEAD
 
       - name: Release anlegen
         env:
@@ -50,6 +57,6 @@ jobs:
             echo "::notice::Release ${GITHUB_REF_NAME} gibt es schon, nichts zu tun."
             exit 0
           fi
-          awk -v head="= ${GITHUB_REF_NAME} =" '$0 == head { found = 1; next } /^= / { found = 0 } found' readme.txt > notes.md
-          gh release create "$GITHUB_REF_NAME" "email-obfuscate-${GITHUB_REF_NAME}.zip" \
-            --title "Email Obfuscate ${GITHUB_REF_NAME}" --notes-file notes.md
+          awk -v head="= ${VERSION} =" '$0 == head { found = 1; next } /^= / { found = 0 } found' readme.txt > notes.md
+          gh release create "$GITHUB_REF_NAME" "email-obfuscate-${VERSION}.zip" \
+            --title "Email Obfuscate ${VERSION}" --notes-file notes.md --latest

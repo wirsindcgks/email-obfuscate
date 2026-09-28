@@ -131,6 +131,9 @@ $source = ['name' => 'quelle.zip', 'browser_download_url' => 'https://github.com
 $release = Updater::parseRelease(['tag_name' => 'v1.2.0', 'html_url' => 'https://github.com/x', 'body' => '* neu', 'assets' => [$source, $zip]]);
 check('Release: Version ohne v', ($release['version'] ?? '') === '1.2.0', var_export($release, true));
 check('Release: Plugin-ZIP als Paket', ($release['package'] ?? '') === $zip['browser_download_url'], var_export($release, true));
+// Tags ab 1.3.5 tragen ein v, die alten bis 1.3.4 nicht.
+check('Release: Tag v1.3.5 ergibt 1.3.5', (Updater::parseRelease(['tag_name' => 'v1.3.5', 'assets' => [$zip]])['version'] ?? '') === '1.3.5');
+check('Release: alter Tag ohne v', (Updater::parseRelease(['tag_name' => '1.3.4', 'assets' => [$zip]])['version'] ?? '') === '1.3.4');
 check('Release: ohne ZIP kein Update', Updater::parseRelease(['tag_name' => '1.2.0', 'assets' => [$source]]) === null);
 check('Release: Entwurf kein Update', Updater::parseRelease(['tag_name' => '1.2.0', 'draft' => true, 'assets' => [$zip]]) === null);
 check('Release: Vorabversion kein Update', Updater::parseRelease(['tag_name' => '1.2.0', 'prerelease' => true, 'assets' => [$zip]]) === null);
