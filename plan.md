@@ -1,9 +1,5 @@
 # Email Obfuscate – Plan
 
-## Offen
-
-- [x] **Kommentar in `src/Encoder.php` (Zeile 13–14) korrigieren.** Dort steht, `antispambot()` lasse zufällig etwa die Hälfte der Zeichen offen, „auch das `@`“. Das stimmt nicht: WordPress ersetzt am Ende von `antispambot()` jedes `@` durch `&#64;` (`return str_replace( '@', '&#64;', … )` in `wp-includes/formatting.php`). Offen bleiben nur zufällig etwa die Hälfte der *übrigen* Zeichen. Nur der Kommentar ist falsch, der Code nicht.
-
 ## Release-Tags mit v
 
 Seit Version 1.3.5 tragen Tags ein v (`v1.3.5`), wie in churchtools-infoscreen und connect-churchtools. Der Release-Workflow reagiert nur auf `v[0-9]+.[0-9]+.[0-9]+`, von Hand: `gh workflow run release.yml --ref v1.3.5`. Die Versionsnummer bleibt ohne v: Plugin-Header, `Stable tag`, Changelog-Überschrift, ZIP-Name und Release-Titel. Der Updater entfernt das v aus `tag_name`.

@@ -34,7 +34,11 @@ jobs:
           version="${GITHUB_REF_NAME#v}"
           echo "VERSION=$version" >> "$GITHUB_ENV"
 
-      - uses: actions/checkout@v5
+      # Auf einem Commit-SHA wie in ci.yml: Dieser Workflow darf schreiben und
+      # baut die ZIP-Datei, die der Updater installiert.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Tests
         run: php tests/run.php
