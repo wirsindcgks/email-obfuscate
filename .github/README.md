@@ -97,7 +97,7 @@ Die Seite unter *Ausgeschlossene Seiten* eintragen, Cache leeren und prüfen, ob
 
 Abschalten für einzelne Anfragen: `add_filter( 'email_obfuscate_enabled', '__return_false' );`
 
-Tests: `php tests/run.php`. Die Anleitung auf GitHub (`.github/README.md`) entsteht aus dieser Datei: nach jeder Änderung `php bin/readme-md.php` ausführen, sonst schlagen die Tests fehl. Ein Release entsteht, wenn ein Tag wie `1.4.0` gepusht wird; der Workflow prüft Versionsnummer, `Stable tag` und Changelog-Eintrag.
+Tests: `php tests/run.php`. Die Anleitung auf GitHub (`.github/README.md`) entsteht aus dieser Datei: nach jeder Änderung `php bin/readme-md.php` ausführen, sonst schlagen die Tests fehl. Ein Release entsteht, wenn ein Tag wie `v1.4.0` gepusht wird; der Workflow prüft Versionsnummer, `Stable tag` und Changelog-Eintrag. Die Versionsnummer selbst steht dort ohne v (`1.4.0`).
 
 ## Changelog
 
